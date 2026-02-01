@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import com.orbit.product_service.dto.ListResponse;
 import com.orbit.product_service.dto.Product;
 import com.orbit.product_service.dto.ProductInternalDto;
+import com.orbit.product_service.dto.ProductsResponse;
 
 public interface ProductServiceInterface {
 
@@ -16,7 +17,7 @@ public interface ProductServiceInterface {
 	Page<Product> getProductbyTitle(String title, Integer sellerId, String sortBy, String sortDirection,
 			Integer pageNumber, Integer productCount);
 
-	List<ProductInternalDto> getAllProductsByIds(List<String> productIds);
+	List<Product> getAllProductsByIds(List<String> productIds);
 
 	Integer getActiveSeller();
 
@@ -25,4 +26,12 @@ public interface ProductServiceInterface {
 	ListResponse getCategories(Integer sellerId);
 	
 	ListResponse getSellers();
+
+	ProductsResponse getSimilarProducts(Integer sellerId, String productId);
+
+	Page<Product> getFilteredProducts(String productName, String brand, String category, String subCategory, Integer sellerId,
+			String sortBy, String sortDirection, Integer pageNumber, Integer productCount);
+
+	Page<Product> getFilteredProductsFromPrompt(String prompt, String sortBy, String sortDirection, Integer pageNumber,
+			Integer productCount);
 }

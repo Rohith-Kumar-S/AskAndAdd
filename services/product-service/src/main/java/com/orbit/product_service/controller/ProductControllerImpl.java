@@ -38,9 +38,9 @@ public class ProductControllerImpl implements ProductControllerInterface {
 	}
 
 	@Override
-	public ResponseEntity<List<ProductInternalDto>> getProductsByIds(List<String> ids) {
+	public ResponseEntity<List<Product>> getProductsByIds(List<String> ids) {
 		System.out.println("received product list: " + ids.get(0));
-		List<ProductInternalDto> products = this.productService.getAllProductsByIds(ids);
+		List<Product> products = this.productService.getAllProductsByIds(ids);
 		System.out.println("outgoing product list: " + products);
 		if (!products.isEmpty()) {
 			return ResponseEntity.ok(products);
@@ -64,7 +64,8 @@ public class ProductControllerImpl implements ProductControllerInterface {
 	@Override
 	public ResponseEntity<ProductsResponse> getPopularProducts(Integer sellerId, Integer page, Integer productCount) {
 		if (Objects.nonNull(sellerId)) {
-			return ResponseEntity.ok(new ProductsResponse(Boolean.TRUE, this.productService.getPopularProducts(sellerId, page, productCount)));
+			return ResponseEntity.ok(new ProductsResponse(Boolean.TRUE,
+					this.productService.getPopularProducts(sellerId, page, productCount)));
 		} else {
 			return null;
 		}
@@ -86,5 +87,37 @@ public class ProductControllerImpl implements ProductControllerInterface {
 		return ResponseEntity.ok(productService.getSellers());
 	}
 
+	@Override
+	public ResponseEntity<ProductsResponse> getSimilarProducts(Integer sellerId, String productId) {
+		// TODO Auto-generated method stub
+		return ResponseEntity.ok(productService.getSimilarProducts(sellerId, productId));
+	}
+
+	@Override
+	public ResponseEntity<Page<Product>> getFilteredProducts(String productName, String brand, String category,
+			String subCategory, String sortBy, String sortDirection, Integer page, Integer productCount) {
+		// TODO Auto-generated method stub
+		Integer sellerId = this.productService.getActiveSeller();
+		if (Objects.nonNull(sellerId)) {
+			return ResponseEntity.ok(this.productService.getFilteredProducts(productName.isEmpty() ? null : productName,
+					brand.isEmpty() ? null : brand,
+					category.substring(0, 1).toUpperCase() + category.substring(1).toLowerCase(),
+					subCategory.isEmpty() ? null : subCategory, sellerId, sortBy, sortDirection, page, productCount));
+		} else {
+			return null;
+		}
+	}
+
+	@Override
+	public ResponseEntity<ProductsResponse> getFilteredProductsFromPrompt(String prompt, String sortBy,
+			String sortDirection, Integer pageNumber, Integer productCount) {
+		// TODO Auto-generated method stub
+		Integer sellerId = this.productService.getActiveSeller();
+		if (Objects.nonNull(sellerId)) {
+			return ResponseEntity.ok(new ProductsResponse(Boolean.TRUE,this.productService.getFilteredProductsFromPrompt(prompt, sortBy, sortDirection, pageNumber, productCount)));
+		} else {
+			return null;
+		}
+	}
 
 }

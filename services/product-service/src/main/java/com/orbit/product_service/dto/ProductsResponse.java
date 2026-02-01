@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProductsResponse {
 	Boolean success;
-	Page<Product> products;
+	Object products;
 }

@@ -10,12 +10,8 @@ import com.orbit.product_service.model.Product;
 public interface ProductServiceMapper {
 
 	@Mapping(target="seller", source="seller.name")
-	@Mapping(target = "category", source = "category.categoryName")
+	@Mapping(target = "category", source = "category.name")
+	@Mapping(target = "subCategory", source = "subCategory.name")
 	com.orbit.product_service.dto.Product mapProductModelToView(Product product);
-	
-	
-	@Mapping(target="sellerId", source="seller.id")
-	ProductInternalDto mapProductModelToInternalDto(Product product);
-	
 	
 }

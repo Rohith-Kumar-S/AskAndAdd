@@ -14,18 +14,22 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 @Entity
-@Table(name="categories")
+@Table(name="sub_categories")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Category {
-
+public class SubCategory {
 	@Id
 	Integer id;
-	@Column(name="category_name")
+	@Column(name = "sub_category_name")
 	String name;
-	
-	@OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Product> products;
+
+	@OneToMany(mappedBy = "subCategory", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Product> products;
+
+	@ManyToOne
+	@JoinColumn(name = "category_id", nullable = false)
+	Category category;
 }

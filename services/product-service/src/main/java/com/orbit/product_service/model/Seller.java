@@ -38,7 +38,4 @@ public class Seller {
 
 	@OneToMany(mappedBy = "seller", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Product> products;
-
-	@OneToMany(mappedBy = "seller", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<Category> category;
 }

@@ -11,6 +11,4 @@ import com.orbit.product_service.model.Category;
 @Repository
 public interface CategoryServiceRepo extends JpaRepository<Category, Integer> {
 
-	List<Category> findAllBySellerId(Integer sellerId);
-
 }

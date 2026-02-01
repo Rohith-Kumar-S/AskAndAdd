@@ -25,16 +25,33 @@ public interface ProductControllerInterface {
 			@RequestParam(defaultValue = "ASC") String sortDirection, @RequestParam(defaultValue = "0") Integer page,
 			@RequestParam(defaultValue = "10") Integer productCount);
 
+	@GetMapping("/product/filtered")
+	public ResponseEntity<Page<Product>> getFilteredProducts(@RequestParam(defaultValue = "") String productName,
+			@RequestParam(defaultValue = "") String brand, @RequestParam String category,
+			@RequestParam(defaultValue = "") String subCategory, @RequestParam(defaultValue = "featured") String sortBy,
+			@RequestParam(defaultValue = "ASC") String sortDirection, @RequestParam(defaultValue = "0") Integer page,
+			@RequestParam(defaultValue = "10") Integer productCount);
+
+	@GetMapping("/products/by-prompt")
+	public ResponseEntity<ProductsResponse> getFilteredProductsFromPrompt(@RequestParam(defaultValue = "") String prompt,
+			@RequestParam(defaultValue = "featured") String sortBy,
+			@RequestParam(defaultValue = "ASC") String sortDirection, @RequestParam(defaultValue = "0") Integer page,
+			@RequestParam(defaultValue = "10") Integer productCount);
+
 	@GetMapping("/products")
-	ResponseEntity<List<ProductInternalDto>> getProductsByIds(@RequestParam List<String> ids);
+	ResponseEntity<List<Product>> getProductsByIds(@RequestParam List<String> ids);
 
 	@GetMapping("/products/popular")
-	ResponseEntity<ProductsResponse> getPopularProducts(@RequestParam(defaultValue = "0") Integer sellerId,@RequestParam(defaultValue = "0") Integer page,
-			@RequestParam(defaultValue = "10") Integer productCount);
-	
+	ResponseEntity<ProductsResponse> getPopularProducts(@RequestParam(defaultValue = "0") Integer sellerId,
+			@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer productCount);
+
 	@GetMapping("/product/categories")
 	ResponseEntity<ListResponse> getCategories(@RequestParam(defaultValue = "0") Integer sellerId);
-	
+
 	@GetMapping("/product/sellers")
 	ResponseEntity<ListResponse> getSellers();
+
+	@GetMapping("/product/similar")
+	ResponseEntity<ProductsResponse> getSimilarProducts(@RequestParam(defaultValue = "0") Integer sellerId,
+			@RequestParam String productId);
 }
