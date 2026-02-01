@@ -6,10 +6,12 @@ import pickle
 import requests
 from typing import List
 import numpy as np
+from sentence_transformers import SentenceTransformer
 
 llm = ChatOllama(model="llama3.2")
-review_extraction_prompt = PromptTemplate.from_template("""
-You are a product category classifier. Given a user query, extract the most relevant category, subcategory, and brand name.
+embedder = SentenceTransformer("nomic-ai/nomic-embed-text-v1.5", trust_remote_code=True)
+category_extraction_prompt = PromptTemplate.from_template("""
+You are a product category classifier. Given a user query, extract the most relevant category and brand name.
 
 CATEGORIES:
 - Beauty: Cosmetics and appearance products — makeup (eye, lip, face), skincare (serums, cleansers, moisturizers), hair color/dye, hair care (shampoo, conditioner), nail products (polish, press-ons), fragrances/cologne
@@ -26,43 +28,29 @@ CATEGORIES:
 - Electronics: Electronic devices and accessories — computers, laptops, phones, tablets, TVs, headphones, cameras, smart home devices, chargers, cables, small appliances
 - Toys: Children's play items — action figures, dolls, board games, puzzles, building blocks, outdoor play equipment, educational toys, video games for kids
 - Pets: Pet supplies and accessories — pet food (dog, cat, fish, bird), treats, pet toys, beds, collars, leashes, harnesses, grooming supplies, crates, cages, aquariums, litter and litter mats, pet gates, food bowls and mats, pet health products
-- Sports & Outdoors: Athletic and outdoor recreation — sports equipment, fitness gear, camping supplies, hiking gear, bikes, athletic clothing, outdoor accessories, no shoes
+- Sports & Outdoors: Athletic and outdoor recreation — sports equipment, fitness gear, camping supplies, hiking gear, bikes, athletic clothing, outdoor accessories
 - Arts Crafts & Sewing: Creative supplies — craft kits, fabric, yarn, sewing machines, paint supplies, scrapbooking, beads, knitting needles, DIY project materials
 - Auto & Tires: Automotive products — tires, car parts, motor oil, car accessories, cleaning supplies for vehicles, car electronics, tools for auto repair
 - Collectibles: Collectible and memorabilia items — trading cards, coins, stamps, figurines, vintage items, sports memorabilia, limited edition items
 
----
-
-SUBCATEGORY EXTRACTION RULES:
-- Example sub categories: Baby Itching & Rash Treatments, Clean Beauty Makeup, Cologne for Men, Baby Girls Clothing, Boys Outfit Sets, Girls Coats and Jackets,Mens Cargo Pants, Reebok Womens Socks, Womens Sweaters etc.
-- The product only belongs to one sub category.
-- Be specific in your answer.
-- Must not go past 3 words for sub category.
-- **If there is sex or gender, age, specific information, include it in the sub category**.
-
-BRAND EXTRACTION RULES:
-- Extract the brand name ONLY if explicitly mentioned in the query
-- Look for proper nouns that represent brand/manufacturer names (e.g., Nike, Apple, L'Oreal, Pampers)
-- Return only the brand name without additional words (e.g., "Nike" not "Nike brand")
-- Common brand name patterns: capitalized words, well-known company names, designer names
-- **If no brand is mentioned in the query, return "NaN"**
-
 EDGE CASES:
 - If the query could match multiple categories, choose the MOST SPECIFIC category
-- If the query is ambiguous or unclear, use your best judgment based on the most likely intent
-
----
+- If the query is ambiguous, use your best judgment based on the most likely intent
 
 USER QUERY: {query}
 
 OUTPUT FORMAT:
-**CRITICAL: Respond with ONLY ONE line containing exactly three items, comma-separated.**
-**Do NOT provide multiple classification options.**
-**Do NOT include any explanations, alternatives, or additional text.**
+**Respond with ONLY ONE line containing exactly one highly likely category.**
+**Do NOT provide explanations, alternatives, or additional text.**
 
-Format: [Category Name], [Subcategory Name], [Brand Name]
+Format: [Category Name]
 
-If no brand can be identified, use "NaN" for the brand field.""")
+Examples:
+- "nike running shoes" → Clothing
+- "men's dress shirts" → Clothing
+- "iphone charger" → Electronics
+- "dog food" → Pets
+""")
 
 app = FastAPI()
 
@@ -74,14 +62,17 @@ def load_faiss_index(path: str):
     return index, id_mapping
 
 
-def get_embedding(text: str, model: str = "nomic-embed-text:latest") -> List[float]:
-    """Get embedding from Ollama API."""
-    response = requests.post(
-        "http://localhost:11434/api/embeddings",
-        json={"model": model, "prompt": text}
-    )
-    response.raise_for_status()
-    return response.json()["embedding"]
+# def get_embedding(text: str) -> List[float]:
+#     """Get embedding from Ollama API."""
+#     response = requests.post(
+#         "http://localhost:11434/api/embeddings",
+#         json={"model": embedder, "prompt": text}
+#     )
+#     response.raise_for_status()
+#     return response.json()["embedding"]
+
+def get_embedding(text: str) -> np.ndarray:
+    return embedder.encode(text, convert_to_numpy=True)
 
 def search_similar(query: str, index: faiss.Index, id_mapping: dict, k: int = 5):
     """Search for similar products given a query."""
@@ -136,22 +127,20 @@ index = {  "clothing_index" : (cloth_index, cloth_id_mapping),
 
 @app.get("/extract")
 def extract_category(query: str):
-    prompt = review_extraction_prompt.format(query=query.lower())
+    prompt = category_extraction_prompt.format(query=query.lower())
     response = llm.invoke(prompt)
-    response = response.content.strip().split(",")
+    category = response.content.strip().split(",")[0]
     index, id_mapping = load_faiss_index("sub_category_index")
     print("Searching for sub category:", response, query.lower())
-    results = search_similar(response[1], index, id_mapping, k=1)
+    results = search_similar(query.lower().strip(), index, id_mapping, k=1)
     print("Sub category search results:", results)
     list_of_sub_cats = list(results.keys())
-    if len(list_of_sub_cats) > 0:
-        response[1] = list_of_sub_cats[0]
-    print("Final extracted response:", response)
+    print("Final extracted response:", list_of_sub_cats)
     return {
-        "category": response[0].strip(),
-        "sub_category": response[1].strip(),
-        "brand": response[2].strip(),
-        "vector_search_index": f"{'_'.join(response[0].lower().split())}_index"
+        "category": category,
+        "sub_category": list_of_sub_cats[0],
+        "brand": "NaN",
+        "vector_search_index": f"{'_'.join(category.lower().split())}_index"
     }
     
 @app.get("/rank")
