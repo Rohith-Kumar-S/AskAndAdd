@@ -1,5 +1,7 @@
 package com.orbit.cart_service.dto;
 
+import java.math.BigDecimal;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,9 +10,44 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {
-	String id;
-	String title;
-	String imgUrl;
-	Double price;
-	Integer sellerId;
-}	
+	private String id;
+	private String productName;
+
+	
+	private String description;
+
+	
+	private Double initialPrice;
+
+	
+	private Double finalPrice;
+
+	
+	private Double discount;
+
+	
+	private String currency;
+
+	
+	private Double rating;
+
+	
+	private Integer reviewCount = 0;
+
+	
+	private Boolean availableForDelivery;
+
+	
+	private String brand;
+
+	
+	private String seller;
+
+	private String mainImage;
+
+	private String category;
+
+	private String subCategory;
+
+	private float relevanceScore = -1000.0f;
+}

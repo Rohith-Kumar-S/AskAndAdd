@@ -1,5 +1,6 @@
 package com.orbit.cart_service.service;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +20,6 @@ import com.orbit.cart_service.enums.Status;
 import com.orbit.cart_service.mapper.CartServiceMapper;
 import com.orbit.cart_service.model.Item;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -110,8 +110,8 @@ public class CartServiceImpl implements CartServiceInterface {
 				Map<String, String> urlsMap = new HashMap<String, String>();
 				System.out.print(urlsMap.toString());
 				for (Product product : products) {
-					titlesMap.put(product.getId(), product.getTitle());
-					urlsMap.put(product.getId(), product.getImgUrl());
+					titlesMap.put(product.getId(), product.getProductName());
+					urlsMap.put(product.getId(), product.getMainImage());
 				}
 				cart.getItems().stream().forEach(item -> {
 					item.setName(titlesMap.getOrDefault(item.getId(), ""));
@@ -139,12 +139,13 @@ public class CartServiceImpl implements CartServiceInterface {
 				Collectors.toMap(com.orbit.cart_service.dto.Item::getId, com.orbit.cart_service.dto.Item::getQuantity));
 		List<String> productIds = itemQuantityMap.keySet().stream().toList();
 		List<Product> products = productClient.getProductsById(productIds);
-		Map<String, Double> priceMap = products.stream().collect(Collectors.toMap(Product::getId, Product::getPrice));
 		System.out.println("products: " + products.toString());
+		Map<String, Double> priceMap = products.stream().collect(Collectors.toMap(Product::getId, Product::getFinalPrice));
+		
 		Double totalCost = 0.0;
 		// find totalCost
 		totalCost = products.stream().filter(product -> (itemQuantityMap.containsKey(product.getId())))
-				.mapToDouble(product -> itemQuantityMap.get(product.getId()) * product.getPrice()).sum();
+				.mapToDouble(product -> itemQuantityMap.get(product.getId()) * product.getFinalPrice()).sum();
 
 		// set price from products
 		cart.getItems().stream().forEach(item -> item.setPrice(priceMap.getOrDefault(item.getId(), 0.0)));
@@ -153,7 +154,7 @@ public class CartServiceImpl implements CartServiceInterface {
 		cart.setTax(Math.round(0.09 * totalCost * 100.0) / 100.0);
 		cart.setShippingCost(0.00);
 		// for orderid creation
-		cart.setSellerId(products.get(0).getSellerId().toString());
+		cart.setSellerId(products.get(0).getSeller().toString());
 		addToCart(cart, userId);
 		return new Response(Boolean.TRUE, "Items added to the Cart!", null);
 	}

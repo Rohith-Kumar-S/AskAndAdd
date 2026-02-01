@@ -8,7 +8,7 @@ import com.orbit.cart_service.dto.Cart;
 
 
 
-@FeignClient(name = "order-service", url = "http://3.211.201.146:8082/api/order")
+@FeignClient(name = "order-service", url = "http://localhost:8082/api/order")
 public interface OrderClient {
 	@PostMapping
 	String proceedToBuy(@RequestBody Cart cart);

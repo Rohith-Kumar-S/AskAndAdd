@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.orbit.cart_service.dto.Product;
 
-@FeignClient(name = "product-service", url = "http://3.211.201.146:8083/api/products")
+@FeignClient(name = "product-service", url = "http://localhost:8083/api/products")
 public interface ProductClient {
 	@GetMapping
 	List<Product> getProductsById(@RequestParam List<String> ids);
