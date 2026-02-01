@@ -1,2 +1,2 @@
 # AskAndAdd
-A Platform where Commerce, Entertainment, and AI Converge
+ An Ecommerce platform powered by AI
